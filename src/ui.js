@@ -32,6 +32,7 @@ export default class JSNESUI {
 
         self.canvasContext = canvas.getContext('2d');
         self.canvasImageData = self.canvasContext.getImageData(0, 0, 256, 240);
+        self.newImgData = self.canvasContext.getImageData(0, 0,512, 480);
         //self.canvasImageData = self.canvasContext.getImageData(100, 0, 442, 414);
         self.resetCanvas();
 
@@ -168,12 +169,14 @@ export default class JSNESUI {
     resetCanvas() {
         this.canvasContext.fillStyle = 'black';
         // set alpha to opaque
-        this.canvasContext.fillRect(0, 0, 256, 240);
-        //this.canvasContext.fillRect(100, 0, 442, 414);
+        this.canvasContext.fillRect(0, 0, 512, 480);
 
         // Set alpha
-        for (var i = 3; i < this.canvasImageData.data.length - 3; i += 4) {
+        for (let i = 3; i < this.canvasImageData.data.length - 3; i += 4) {
             this.canvasImageData.data[i] = 0xFF;
+        }
+        for (let i = 3; i < this.newImgData.data.length - 3; i += 4) {
+            this.newImgData.data[i] = 0xFF;
         }
     }
 
@@ -261,48 +264,50 @@ export default class JSNESUI {
 
     writeFrame(buffer, prevBuffer) {
         let imageData = this.canvasImageData.data;
-
-        let array = [];
-        let index = 0;
-        let length = 512 * 480;
-        let loop = 256 * 240;
-        let num = length / loop;
-        let finalNum = length % loop;
+        let newImgData = this.newImgData.data;
 
         let pixel, i, j;
-        for (i = 0; i <= loop; i++) {
-            let count = num;
-            if (i === loop) {
-                count = finalNum;
-            }
+        for (i = 0; i <= 256 * 240; i++) {
+            pixel = buffer[i];
 
-            if (i !== loop) {
-                pixel = buffer[i];
+            if (pixel !== prevBuffer[i]) {
+                j = i * 4;
+                imageData[j] = pixel & 0xFF;
+                imageData[j + 1] = (pixel >> 8) & 0xFF;
+                imageData[j + 2] = (pixel >> 16) & 0xFF;
+                prevBuffer[i] = pixel;
 
-                if (pixel !== prevBuffer[i]) {
-                    j = i * 4;
-                    imageData[j] = pixel & 0xFF;
-                    imageData[j + 1] = (pixel >> 8) & 0xFF;
-                    imageData[j + 2] = (pixel >> 16) & 0xFF;
-                    prevBuffer[i] = pixel;
-                }
-            }
-
-            for (let k = 0; k < count; k++, index+=4) {
-                //this.setNewImgData(imageData, array, index);
+                this.changeNewImgData(j, imageData, newImgData);
             }
         }
 
-        let newImgData = this.canvasContext.createImageData(512, 480);
-        newImgData.data.set(array, 0);
-
-        this.canvasContext.putImageData(newImgData, 0, 0);
+        this.canvasContext.putImageData(this.newImgData, 0, 0);
         //this.canvasContext.putImageData(this.canvasImageData, 0, 0);
     }
 
-    setNewImgData(imageData, newImgData, index) {
-        let i = parseInt((index/4)/512);
-        let j = parseInt((index/4)%512);
+    changeNewImgData(index, imageData, newImgData) {
+        let i = parseInt((index/4)/256);
+        let j = parseInt((index/4)%256);
+
+        let x0 = parseInt((480 - 1) * i/(240 - 1));
+        let y0 = parseInt((512 - 1) * j/(256 - 1));
+
+        //let plu = [x0,y0];
+        this.setNewImgData(imageData, newImgData, x0, y0);
+
+        //let pru = [x0, y0+1];
+        this.setNewImgData(imageData, newImgData, x0, y0+1);
+
+        //let pld = [x0+1, y0];
+        this.setNewImgData(imageData, newImgData, x0+1, y0);
+
+        //let prd = [x0+1, y0+1];
+        this.setNewImgData(imageData, newImgData, x0+1, y0+1);
+
+    }
+
+    setNewImgData(imageData, newImgData, i, j) {
+        let index = (512*i+j)*4;
 
         let x0 = parseInt((240 - 1) * i/(480 - 1));
         let y0 = parseInt((256 - 1) * j/(512 - 1));
