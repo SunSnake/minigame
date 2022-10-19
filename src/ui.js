@@ -23,8 +23,11 @@ export default class JSNESUI {
         self.screen = canvas;
         self.loadROM();
 
-        /*console.log(wx.getSystemInfoSync().windowWidth)
-        console.log(wx.getSystemInfoSync().windowHeight)*/
+        let windowHeight = wx.getSystemInfoSync().windowHeight;
+        self.cellHeigth = windowHeight;
+        self.cellWidth = parseInt(windowHeight*256/240);
+
+        self.screenDistnce = parseInt((wx.getSystemInfoSync().windowWidth - self.cellWidth)/2);
 
         /*if (typeof roms != 'undefined') {
             self.setRoms(roms);
@@ -32,7 +35,7 @@ export default class JSNESUI {
 
         self.canvasContext = canvas.getContext('2d');
         self.canvasImageData = self.canvasContext.getImageData(0, 0, 256, 240);
-        self.newImgData = self.canvasContext.getImageData(0, 0,512, 480);
+        self.newImgData = self.canvasContext.getImageData(0, 0,this.cellWidth, this.cellWidth);
         self.resetCanvas();
 
 
@@ -168,7 +171,7 @@ export default class JSNESUI {
     resetCanvas() {
         this.canvasContext.fillStyle = 'black';
         // set alpha to opaque
-        this.canvasContext.fillRect(0, 0, 512, 480);
+        this.canvasContext.fillRect(0, 0, this.cellWidth, this.cellHeigth);
 
         // Set alpha
         for (let i = 3; i < this.canvasImageData.data.length - 3; i += 4) {
@@ -276,74 +279,61 @@ export default class JSNESUI {
                 imageData[j + 2] = (pixel >> 16) & 0xFF;
                 prevBuffer[i] = pixel;
 
+                //缩放
                 this.changeNewImgData(i, imageData, newImgData);
             }
         }
 
-        this.canvasContext.putImageData(this.newImgData, 0, 0);
-        //this.canvasContext.putImageData(this.canvasImageData, 0, 0);
+        this.canvasContext.putImageData(this.newImgData, this.screenDistnce, 0);
     }
 
     changeNewImgData(index, imageData, newImgData) {
         let i = parseInt(index/256);
         let j = parseInt(index%256);
 
-        let x0 = parseInt((480 - 1) * i/(240 - 1));
-        let y0 = parseInt((512 - 1) * j/(256 - 1));
+        let x0 = parseInt((this.cellHeigth - 1) * i/(240 - 1));
+        let y0 = parseInt((this.cellWidth - 1) * j/(256 - 1));
 
-        //let plu = [x0,y0];
-        this.setNewImgData(imageData, newImgData, x0, y0);
+        //左上 [x0,y0];
+        this.dealZoomPoint(imageData, newImgData, x0, y0);
 
-        //let pru = [x0, y0+1];
-        this.setNewImgData(imageData, newImgData, x0, y0+1);
+        //右上 [x0, y0+1];
+        this.dealZoomPoint(imageData, newImgData, x0, y0+1);
 
-        //let pld = [x0+1, y0];
-        this.setNewImgData(imageData, newImgData, x0+1, y0);
+        //左下 [x0+1, y0];
+        this.dealZoomPoint(imageData, newImgData, x0+1, y0);
 
-        //let prd = [x0+1, y0+1];
-        this.setNewImgData(imageData, newImgData, x0+1, y0+1);
+        //右下 [x0+1, y0+1];
+        this.dealZoomPoint(imageData, newImgData, x0+1, y0+1);
 
     }
 
-    setNewImgData(imageData, newImgData, x0, y0) {
-        let index = (512*x0+y0)*4;
+    dealZoomPoint(imageData, newImgData, x0, y0) {
+        let index = (this.cellWidth*x0+y0)*4;
 
-        let i = parseInt((240 - 1) * x0/(480 - 1));
-        let j = parseInt((256 - 1) * y0/(512 - 1));
+        let i = parseInt((240 - 1) * x0/(this.cellHeigth - 1));
+        let j = parseInt((256 - 1) * y0/(this.cellWidth - 1));
 
-        if (y0 === 512 - 1 && x0 === 480 - 1) {
-            let ind = 4*(i*256+j);
-            newImgData[index] = imageData[ind];
-            newImgData[index+1] = imageData[ind+1];
-            newImgData[index+2] = imageData[ind+2];
-            return;
+        let xf = (240 - 1) * x0%(this.cellHeigth - 1);
+        let yf = (256 - 1) * y0%(this.cellWidth - 1);
+
+        xf = Math.floor((xf/(this.cellHeigth - 1))*100)/100;
+        yf = Math.floor((yf/(this.cellWidth - 1))*100)/100;
+
+        if (xf < 0.5 && yf < 0.5) {
+            this.setNewImgData(newImgData, index, imageData, 4*(i*256+j));
+        } else if (xf < 0.5 && yf > 0.5) {
+            this.setNewImgData(newImgData, index, imageData, 4*(i*256+j+1));
+        } else if (xf > 0.5 && yf < 0.5) {
+            this.setNewImgData(newImgData, index, imageData, 4*((i+1)*256+j));
+        } else {
+            this.setNewImgData(newImgData, index, imageData, 4*((i+1)*256+j+1));
         }
+    }
 
-        if (y0 === 512 - 1) {
-            let ind1 = 4*(i*256+j);
-            let ind2 = 4*((i+1)*256+j);
-            newImgData[index] = (imageData[ind1] + imageData[ind2])/2;
-            newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1])/2;
-            newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2])/2;
-            return;
-        }
-
-        if (x0 === 480 - 1) {
-            let ind1 = 4*(i*256+j);
-            let ind2 = 4*(i*256+j+1);
-            newImgData[index] = (imageData[ind1] + imageData[ind2])/2;
-            newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1])/2;
-            newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2])/2;
-            return;
-        }
-
-        let ind1 = 4*(i*256+j);
-        let ind2 = 4*((i+1)*256+j);
-        let ind3 = 4*((i+1)*256+j+1);
-        let ind4 = 4*(i*256+j+1);
-
-        newImgData[index] = (imageData[ind1] + imageData[ind2] + imageData[ind3] + imageData[ind4])/4;
-        newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1] + imageData[ind3+1] + imageData[ind4+1])/4;
-        newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2] + imageData[ind3+2] + imageData[ind4+2])/4;
+    setNewImgData(newImgData, newIndex, imageData, index) {
+        newImgData[newIndex] = imageData[index];
+        newImgData[newIndex+1] = imageData[index+1];
+        newImgData[newIndex+2] = imageData[index+2];
     }
 }
