@@ -262,95 +262,88 @@ export default class JSNESUI {
     writeFrame(buffer, prevBuffer) {
         let imageData = this.canvasImageData.data;
 
-        let pixel, i, j;
-        for (i = 0; i < 256 * 240; i++) {
-            pixel = buffer[i];
+        let array = [];
+        let index = 0;
+        let length = 512 * 480;
+        let loop = 256 * 240;
+        let num = length / loop;
+        let finalNum = length % loop;
 
-            if (pixel !== prevBuffer[i]) {
-                j = i * 4;
-                imageData[j] = pixel & 0xFF;
-                imageData[j + 1] = (pixel >> 8) & 0xFF;
-                imageData[j + 2] = (pixel >> 16) & 0xFF;
-                prevBuffer[i] = pixel;
+        let pixel, i, j;
+        for (i = 0; i <= loop; i++) {
+            let count = num;
+            if (i === loop) {
+                count = finalNum;
+            }
+
+            if (i !== loop) {
+                pixel = buffer[i];
+
+                if (pixel !== prevBuffer[i]) {
+                    j = i * 4;
+                    imageData[j] = pixel & 0xFF;
+                    imageData[j + 1] = (pixel >> 8) & 0xFF;
+                    imageData[j + 2] = (pixel >> 16) & 0xFF;
+                    prevBuffer[i] = pixel;
+                }
+            }
+
+            for (let k = 0; k < count; k++, index+=4) {
+                //this.setNewImgData(imageData, array, index);
             }
         }
 
         let newImgData = this.canvasContext.createImageData(512, 480);
-        //this.zoomImgData(imageData, newImgData.data);
-        //this.canvasContext.putImageData(newImgData, 0, 0);
-        this.canvasContext.putImageData(this.canvasImageData, 0, 0);
+        newImgData.data.set(array, 0);
+
+        this.canvasContext.putImageData(newImgData, 0, 0);
+        //this.canvasContext.putImageData(this.canvasImageData, 0, 0);
     }
 
-    zoomImgData(imageData, newImgData) {
-        let index = 0;
-        for (let i = 0; i < 480; i++) {
-            for (let j = 0; j < 512; j++) {
-                let x0 = parseInt((240 - 1) * i/(480 - 1));
-                let y0 = parseInt((256 - 1) * j/(512 - 1));
+    setNewImgData(imageData, newImgData, index) {
+        let i = parseInt((index/4)/512);
+        let j = parseInt((index/4)%512);
 
-                let xf = (240 - 1) * i%(480 - 1);
-                let yf = (256 - 1) * j%(512 - 1);
+        let x0 = parseInt((240 - 1) * i/(480 - 1));
+        let y0 = parseInt((256 - 1) * j/(512 - 1));
 
-                xf = Math.floor((xf/(480 - 1))*100)/100;
-                yf = Math.floor((yf/(512 - 1))*100)/100;
-
-                if (j === 512 - 1 && i === 480 - 1) {
-                    let ind = 4*(x0*256+y0);
-                    newImgData[index] = imageData[ind];
-                    newImgData[index+1] = imageData[ind+1];
-                    newImgData[index+2] = imageData[ind+2];
-                    newImgData[index+3] = imageData[ind+3];
-                    continue;
-                }
-
-                if (j === 512 - 1) {
-                    let ind1 = 4*(x0*256+y0);
-                    let ind2 = 4*((x0+1)*256+y0);
-                    newImgData[index] = (imageData[ind1] + imageData[ind2])/2;
-                    newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1])/2;
-                    newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2])/2;
-                    newImgData[index+3] = (imageData[ind1+3] + imageData[ind2+3])/2;
-                    index+=4;
-                    continue;
-                }
-
-                if (i === 480 - 1) {
-                    let ind1 = 4*(x0*256+y0);
-                    let ind2 = 4*(x0*256+y0+1);
-                    newImgData[index] = (imageData[ind1] + imageData[ind2])/2;
-                    newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1])/2;
-                    newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2])/2;
-                    newImgData[index+3] = (imageData[ind1+3] + imageData[ind2+3])/2;
-                    index+=4;
-                    continue;
-                }
-
-                let ind1 = 4*(x0*256+y0);
-                let ind2 = 4*((x0+1)*256+y0);
-                let ind3 = 4*((x0+1)*256+y0+1);
-                let ind4 = 4*(x0*256+y0+1);
-
-                newImgData[index] = (imageData[ind1] + imageData[ind2] + imageData[ind3] + imageData[ind4])/4;
-                newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1] + imageData[ind3+1] + imageData[ind4+1])/4;
-                newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2] + imageData[ind3+2] + imageData[ind4+2])/4;
-                newImgData[index+3] = (imageData[ind1+3] + imageData[ind2+3] + imageData[ind3+3] + imageData[ind4+3])/4;
-                index+=4;
-            }
+        if (j === 512 - 1 && i === 480 - 1) {
+            let ind = 4*(x0*256+y0);
+            newImgData[index] = imageData[ind];
+            newImgData[index+1] = imageData[ind+1];
+            newImgData[index+2] = imageData[ind+2];
+            newImgData[index+3] = imageData[ind+3];
+            return;
         }
-    }
 
-    getMiddlePoint(p1, p2, ratio) {
-        return {
-            r: (p1.r+p2.r)/2,
-            g: (p1.g+p2.g)/2,
-            b: (p1.b+p2.b)/2,
-            a: (p1.a+p2.a)/2,
+        if (j === 512 - 1) {
+            let ind1 = 4*(x0*256+y0);
+            let ind2 = 4*((x0+1)*256+y0);
+            newImgData[index] = (imageData[ind1] + imageData[ind2])/2;
+            newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1])/2;
+            newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2])/2;
+            newImgData[index+3] = (imageData[ind1+3] + imageData[ind2+3])/2;
+            return;
         }
-        /*return {
-            r: p1.r*ratio + p2.r*(1-ratio),
-            g: p1.g*ratio + p2.g*(1-ratio),
-            b: p1.b*ratio + p2.b*(1-ratio),
-            a: p1.a*ratio + p2.a*(1-ratio),
-        }*/
+
+        if (i === 480 - 1) {
+            let ind1 = 4*(x0*256+y0);
+            let ind2 = 4*(x0*256+y0+1);
+            newImgData[index] = (imageData[ind1] + imageData[ind2])/2;
+            newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1])/2;
+            newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2])/2;
+            newImgData[index+3] = (imageData[ind1+3] + imageData[ind2+3])/2;
+            return;
+        }
+
+        let ind1 = 4*(x0*256+y0);
+        let ind2 = 4*((x0+1)*256+y0);
+        let ind3 = 4*((x0+1)*256+y0+1);
+        let ind4 = 4*(x0*256+y0+1);
+
+        newImgData[index] = (imageData[ind1] + imageData[ind2] + imageData[ind3] + imageData[ind4])/4;
+        newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1] + imageData[ind3+1] + imageData[ind4+1])/4;
+        newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2] + imageData[ind3+2] + imageData[ind4+2])/4;
+        newImgData[index+3] = (imageData[ind1+3] + imageData[ind2+3] + imageData[ind3+3] + imageData[ind4+3])/4;
     }
 }
