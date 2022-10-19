@@ -276,32 +276,12 @@ export default class JSNESUI {
         }
 
         let newImgData = this.canvasContext.createImageData(512, 480);
-        this.zoomImgData(imageData, newImgData.data);
-        this.canvasContext.putImageData(newImgData, 0, 0);
-        //this.canvasContext.putImageData(this.canvasImageData, 0, 0);
+        //this.zoomImgData(imageData, newImgData.data);
+        //this.canvasContext.putImageData(newImgData, 0, 0);
+        this.canvasContext.putImageData(this.canvasImageData, 0, 0);
     }
 
     zoomImgData(imageData, newImgData) {
-        let arr = new Array(240);
-        let innerArr = new Array(256);
-        for (let i = 0, loopCount = 0, column = 0; i <= imageData.length; i = i+4, loopCount++) {
-            if (loopCount !== 0 && loopCount%256 === 0) {
-                loopCount = 0;
-                arr[column++] = innerArr;
-                if (i === imageData.length) {
-                    break;
-                }
-                innerArr = new Array(256);
-            }
-
-            innerArr[loopCount] = {
-                r: imageData[i],
-                g: imageData[i + 1],
-                b: imageData[i + 2],
-                a: imageData[i + 3]
-            };
-        }
-
         let index = 0;
         for (let i = 0; i < 480; i++) {
             for (let j = 0; j < 512; j++) {
@@ -315,41 +295,45 @@ export default class JSNESUI {
                 yf = Math.floor((yf/(512 - 1))*100)/100;
 
                 if (j === 512 - 1 && i === 480 - 1) {
-                    newImgData[index] = arr[x0][y0].r;
-                    newImgData[index+1] = arr[x0][y0].g;
-                    newImgData[index+2] = arr[x0][y0].b;
-                    newImgData[index+3] = arr[x0][y0].a;
+                    let ind = 4*(x0*256+y0);
+                    newImgData[index] = imageData[ind];
+                    newImgData[index+1] = imageData[ind+1];
+                    newImgData[index+2] = imageData[ind+2];
+                    newImgData[index+3] = imageData[ind+3];
                     continue;
                 }
 
                 if (j === 512 - 1) {
-                    let item = this.getMiddlePoint(arr[x0][y0], arr[x0+1][y0], yf);
-                    newImgData[index] = item.r;
-                    newImgData[index+1] = item.g;
-                    newImgData[index+2] = item.b;
-                    newImgData[index+3] = item.a;
+                    let ind1 = 4*(x0*256+y0);
+                    let ind2 = 4*((x0+1)*256+y0);
+                    newImgData[index] = (imageData[ind1] + imageData[ind2])/2;
+                    newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1])/2;
+                    newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2])/2;
+                    newImgData[index+3] = (imageData[ind1+3] + imageData[ind2+3])/2;
                     index+=4;
                     continue;
                 }
 
                 if (i === 480 - 1) {
-                    let item = this.getMiddlePoint(arr[x0][y0], arr[x0][y0+1], yf);
-                    newImgData[index] = item.r;
-                    newImgData[index+1] = item.g;
-                    newImgData[index+2] = item.b;
-                    newImgData[index+3] = item.a;
+                    let ind1 = 4*(x0*256+y0);
+                    let ind2 = 4*(x0*256+y0+1);
+                    newImgData[index] = (imageData[ind1] + imageData[ind2])/2;
+                    newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1])/2;
+                    newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2])/2;
+                    newImgData[index+3] = (imageData[ind1+3] + imageData[ind2+3])/2;
                     index+=4;
                     continue;
                 }
 
-                let p1 = this.getMiddlePoint(arr[x0][y0], arr[x0+1][y0], xf);
-                let p3 = this.getMiddlePoint(arr[x0+1][y0+1], arr[x0][y0+1], xf);
+                let ind1 = 4*(x0*256+y0);
+                let ind2 = 4*((x0+1)*256+y0);
+                let ind3 = 4*((x0+1)*256+y0+1);
+                let ind4 = 4*(x0*256+y0+1);
 
-                let item = this.getMiddlePoint(p1, p3, yf);
-                newImgData[index] = item.r;
-                newImgData[index+1] = item.g;
-                newImgData[index+2] = item.b;
-                newImgData[index+3] = item.a;
+                newImgData[index] = (imageData[ind1] + imageData[ind2] + imageData[ind3] + imageData[ind4])/4;
+                newImgData[index+1] = (imageData[ind1+1] + imageData[ind2+1] + imageData[ind3+1] + imageData[ind4+1])/4;
+                newImgData[index+2] = (imageData[ind1+2] + imageData[ind2+2] + imageData[ind3+2] + imageData[ind4+2])/4;
+                newImgData[index+3] = (imageData[ind1+3] + imageData[ind2+3] + imageData[ind3+3] + imageData[ind4+3])/4;
                 index+=4;
             }
         }
