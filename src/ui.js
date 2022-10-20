@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 export default class JSNESUI {
     constructor() {
-        var self = this;
+        let self = this;
 
         self.screen = canvas;
         self.loadROM();
@@ -37,113 +37,6 @@ export default class JSNESUI {
         self.canvasImageData = self.canvasContext.getImageData(0, 0, 256, 240);
         self.newImgData = self.canvasContext.getImageData(0, 0,this.cellWidth, this.cellWidth);
         self.resetCanvas();
-
-
-        function handleFire(e, turbo) {
-            var parent = $('#controls-fire');
-            if (turbo) {
-                parent = $('#controls-turbofire');
-            }
-            var myLocation = e.originalEvent.changedTouches[0];
-            var realTarget = document.elementFromPoint(myLocation.clientX, myLocation.clientY);
-            if ($(realTarget).hasClass('a')) {
-                $('.a', parent).addClass('active');
-                $('.b', parent).removeClass('active');
-                clearInterval(self.interval);
-                if (turbo) {
-                    self.nes.keyboard.keyDown({
-                        keyCode: 'AA'
-                    });
-                    self.nes.keyboard.keyUp({
-                        keyCode: 90
-                    });
-                    self.interval = setInterval(function() {
-                        self.nes.keyboard.keyDown({
-                            keyCode: 'AA'
-                        });
-                    }, 50);
-                } else {
-                    self.nes.keyboard.keyDown({
-                        keyCode: 88
-                    });
-                    self.nes.keyboard.keyUp({
-                        keyCode: 90
-                    });
-                }
-            } else if ($(realTarget).hasClass('b')) {
-                $('.a', parent).removeClass('active');
-                $('.b', parent).addClass('active');
-                clearInterval(self.interval);
-                if (turbo) {
-                    self.nes.keyboard.keyUp({
-                        keyCode: 88
-                    });
-                    self.nes.keyboard.keyDown({
-                        keyCode: 'BB'
-                    });
-                    self.interval = setInterval(function() {
-                        self.nes.keyboard.keyDown({
-                            keyCode: 'BB'
-                        });
-                    }, 50);
-                } else {
-                    self.nes.keyboard.keyUp({
-                        keyCode: 88
-                    });
-                    self.nes.keyboard.keyDown({
-                        keyCode: 90
-                    });
-                }
-            } else if ($(realTarget).hasClass('c')) {
-                $('.a', parent).addClass('active');
-                $('.b', parent).addClass('active');
-                clearInterval(self.interval);
-                if (turbo) {
-                    self.nes.keyboard.keyDown({
-                        keyCode: 'AA'
-                    });
-                    self.nes.keyboard.keyDown({
-                        keyCode: 'BB'
-                    });
-                    self.interval = setInterval(function() {
-                        self.nes.keyboard.keyDown({
-                            keyCode: 'AA'
-                        });
-                        self.nes.keyboard.keyDown({
-                            keyCode: 'BB'
-                        });
-                    }, 50);
-                } else {
-                    self.nes.keyboard.keyDown({
-                        keyCode: 88
-                    });
-                    self.nes.keyboard.keyDown({
-                        keyCode: 90
-                    });
-                }
-            } else {
-                clearInterval(self.interval);
-                $('.a', parent).removeClass('active');
-                $('.b', parent).removeClass('active');
-                self.nes.keyboard.keyUp({
-                    keyCode: 88
-                });
-                self.nes.keyboard.keyUp({
-                    keyCode: 90
-                });
-
-            }
-        }
-
-        window.AudioContext = window.webkitAudioContext || window.AudioContext;
-        try {
-            self.audio = new AudioContext();
-        } catch (e) {
-            // lets fallback to Flash (for Internet Explorer 8-11)
-            self.dynamicaudio = new DynamicAudio({
-                swf: nes.opts.swfPath + 'dynamicaudio.swf'
-            });
-        }
     }
 
     setNES(nes) {
@@ -153,19 +46,29 @@ export default class JSNESUI {
     loadROM() {
         let self = this;
         wx.request({
-            url: 'http://127.0.0.1:8001/1981/5.nes',
+            url: 'http://127.0.0.1:8001/rom2/RockinCats.nes',
             responseType: 'arraybuffer',
             success: function (res) {
                 let data = res.data;
-                let result = String.fromCharCode.apply(null, new Uint8Array(data));
+                let result = self.getStrFromArr(new Uint8Array(data));
                 self.nes.loadRom(result);
                 self.nes.start();
-                self.enable();
             },
             fail: err => {
                 console.log(err)
             }
         })
+    }
+
+    getStrFromArr(array) {
+        let res = '';
+        let chunk = 8 * 1024;
+        let i;
+        for (i = 0; i < array.length / chunk; i++) {
+            res += String.fromCharCode.apply(null, array.slice(i * chunk, (i + 1) * chunk));
+        }
+        res += String.fromCharCode.apply(null, array.slice(i * chunk));
+        return res;
     }
 
     resetCanvas() {
@@ -180,35 +83,6 @@ export default class JSNESUI {
         for (let i = 3; i < this.newImgData.data.length - 3; i += 4) {
             this.newImgData.data[i] = 0xFF;
         }
-    }
-
-    /*
-     *
-     * nes.ui.screenshot() --> return <img> element :)
-     */
-    screenshot() {
-        var data = this.screen[0].toDataURL("image/png"),
-            img = new Image();
-        img.src = data;
-        return img;
-    }
-
-    /*
-     * Enable and reset UI elements
-     */
-    enable() {
-        /*this.buttons.pause.attr("disabled", null);
-        if (this.nes.isRunning) {
-            this.buttons.pause.attr("value", "暂停");
-        } else {
-            this.buttons.pause.attr("value", "继续");
-        }
-        this.buttons.restart.attr("disabled", null);
-        if (this.nes.opts.emulateSound) {
-            this.buttons.sound.attr("value", "关闭声音");
-        } else {
-            this.buttons.sound.attr("value", "打开声音");
-        }*/
     }
 
     updateStatus(s) {

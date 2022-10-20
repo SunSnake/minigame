@@ -47,7 +47,7 @@ export default class Keyboard {
         switch (key) {
             case 75: this.state1[this.keys.KEY_A] = value; break;      // X 88
             case 74: this.state1[this.keys.KEY_B] = value; break;      // Y (Central European keyboard) 89
-            case 74: this.state1[this.keys.KEY_B] = value; break;      // Z 90
+            //case 74: this.state1[this.keys.KEY_B] = value; break;      // Z 90
             case 17: this.state1[this.keys.KEY_SELECT] = value; break; // Right Ctrl
             case 13: this.state1[this.keys.KEY_START] = value; break;  // Enter
             case 87: this.state1[this.keys.KEY_UP] = value; break;     // Up 38
