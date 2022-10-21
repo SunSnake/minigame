@@ -37,6 +37,17 @@ export default class JSNESUI {
         self.canvasImageData = self.canvasContext.getImageData(0, 0, 256, 240);
         self.newImgData = self.canvasContext.getImageData(0, 0,this.cellWidth, this.cellWidth);
         self.resetCanvas();
+
+        window.AudioContext = window.webkitAudioContext || window.AudioContext;
+        try {
+            self.audio = new AudioContext();
+        } catch (e) {
+            // lets fallback to Flash (for Internet Explorer 8-11)
+            console.error(e);
+            self.dynamicaudio = new DynamicAudio({
+                swf: this.nes.opts.swfPath + 'dynamicaudio.swf'
+            });
+        }
     }
 
     setNES(nes) {

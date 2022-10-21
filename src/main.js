@@ -4,6 +4,8 @@
 import JSNES from "./nes";
 import JSNESUI from "./ui";
 
+const windowWidth = wx.getSystemInfoSync().windowWidth;
+
 const ctx = canvas.getContext('2d');
 const DIRECTION_BTN_SIZE = 50;
 const FUNCTION_BTN_SIZE = 50;
@@ -12,6 +14,9 @@ const AB_BTN_SIZE = 50;
 export default class Main {
 
     constructor() {
+        this.dirCodes = [];
+        this.funCodes = [];
+
         this.drawDirectionButtons();
         this.drawFuncButtons();
         this.drawABButtons();
@@ -23,138 +28,6 @@ export default class Main {
 
         // 初始化事件监听
         this.initEvent();
-
-        //定时获取屏幕触摸事件
-        setInterval(() => {
-            if (this.touched) {
-                this.handleDirection(this.touchCode);
-            }
-        }, 80)
-    }
-
-    handleDirection(touchCode) {
-        switch (touchCode) {
-            case "upLeft":
-                this.nes.keyboard.keyDown({
-                    keyCode: 37
-                });
-                this.nes.keyboard.keyDown({
-                    keyCode: 38
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 39
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 40
-                });
-                break;
-            case "up":
-                this.nes.keyboard.keyUp({
-                    keyCode: 37
-                });
-                this.nes.keyboard.keyDown({
-                    keyCode: 38
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 39
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 40
-                });
-                break;
-            case "upRight":
-                this.nes.keyboard.keyUp({
-                    keyCode: 37
-                });
-                this.nes.keyboard.keyDown({
-                    keyCode: 38
-                });
-                this.nes.keyboard.keyDown({
-                    keyCode: 39
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 40
-                });
-                break;
-            case "right":
-                this.nes.keyboard.keyUp({
-                    keyCode: 37
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 38
-                });
-                this.nes.keyboard.keyDown({
-                    keyCode: 39
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 40
-                });
-                break;
-            case "downRight":
-                this.nes.keyboard.keyUp({
-                    keyCode: 37
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 38
-                });
-                this.nes.keyboard.keyDown({
-                    keyCode: 39
-                });
-                this.nes.keyboard.keyDown({
-                    keyCode: 40
-                });
-                break;
-            case "down":
-                this.nes.keyboard.keyDown({
-                    keyCode: 83
-                });
-                /*this.nes.keyboard.keyUp({
-                    keyCode: 83
-                });*/
-                break;
-            case "downLeft":
-                this.nes.keyboard.keyDown({
-                    keyCode: 37
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 38
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 39
-                });
-                this.nes.keyboard.keyDown({
-                    keyCode: 40
-                });
-                break;
-            case "left":
-                this.nes.keyboard.keyDown({
-                    keyCode: 37
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 38
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 39
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 40
-                });
-                break;
-            case "center":
-                this.nes.keyboard.keyUp({
-                    keyCode: 37
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 38
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 39
-                });
-                this.nes.keyboard.keyUp({
-                    keyCode: 40
-                });
-                break;
-        }
     }
 
     //方向按钮组
@@ -293,6 +166,15 @@ export default class Main {
             this.bY = FUNCTION_BTN_SIZE + ab_marginRight*2;
             ctx.drawImage(b, this.bX, this.bY, AB_BTN_SIZE, AB_BTN_SIZE)
         }
+
+        const AB_BTN_IMG_SRC = 'images/explosion8.png';
+        let ab = new Image();
+        ab.src = AB_BTN_IMG_SRC;
+        ab.onload = () => {
+            this.abX = FUNCTION_BTN_SIZE*13 + ab_marginLeft;
+            this.abY = FUNCTION_BTN_SIZE + ab_marginRight*3;
+            ctx.drawImage(ab, this.abX, this.abY, AB_BTN_SIZE, AB_BTN_SIZE)
+        }
     }
 
     // 响应手指的触摸事件
@@ -300,103 +182,92 @@ export default class Main {
         canvas.addEventListener('touchstart', ((e) => {
             e.preventDefault()
 
-            const x = e.touches[0].clientX
-            const y = e.touches[0].clientY
+            const x = e.touches[0].clientX;
+            const y = e.touches[0].clientY;
 
-            if (this.upLeft(x, y)) {
-                this.touched = true;
-                this.touchCode = "upLeft";
-                return;
-            }
-            if (this.up(x, y)) {
-                this.touched = true;
-                this.touchCode = "up";
-                return;
-            }
-            if (this.upRight(x, y)) {
-                this.touched = true;
-                this.touchCode = "upRight";
-                return;
-            }
-            if (this.right(x, y)) {
-                this.touched = true;
-                this.touchCode = "right";
-                return;
-            }
-            if (this.downRight(x, y)) {
-                this.touched = true;
-                this.touchCode = "downRight";
-                return;
-            }
-            if (this.down(x, y)) {
-                this.touched = true;
-                this.touchCode = "down";
-                return;
-            }
-            if (this.downLeft(x, y)) {
-                this.touched = true;
-                this.touchCode = "downLeft";
-                return;
-            }
-            if (this.left(x, y)) {
-                this.touched = true;
-                this.touchCode = "left";
-                return;
-            }
-
-
-            if (this.select(x, y)) {
-                this.touchCode = "select";
-                return;
-            }
-            if (this.sound(x, y)) {
-                this.touchCode = "sound";
-                this.nes.opts.emulateSound = !this.nes.opts.emulateSound;
-                return;
-            }
-            if (this.pause(x, y)) {
-                this.touchCode = "pause";
-                if (this.nes.isRunning) {
-                    this.nes.stop();
-                    this.ui.updateStatus("Paused");
-                } else {
-                    this.nes.start();
+            //左半侧只有方向键
+            if (x < windowWidth/2) {
+                if (this.upLeft(x, y)) {
+                    this.dirCodes.push(65, 87);
+                } else if (this.up(x, y)) {
+                    this.dirCodes.push(87);
+                } else if (this.upRight(x, y)) {
+                    this.dirCodes.push(87, 68);
+                } else if (this.right(x, y)) {
+                    this.dirCodes.push(68);
+                } else if (this.downRight(x, y)) {
+                    this.dirCodes.push(68, 83);
+                } else if (this.down(x, y)) {
+                    this.dirCodes.push(83);
+                } else if (this.downLeft(x, y)) {
+                    this.dirCodes.push(83, 65);
+                } else if (this.left(x, y)) {
+                    this.dirCodes.push(65);
                 }
-                return;
-            }
-            if (this.restart(x, y)) {
-                this.touchCode = "restart";
-                this.nes.reloadRom();
-                this.nes.start();
-                return;
-            }
 
-            if (this.A(x, y)) {
-                this.touchCode = "A";
-                return;
-            }
-            if (this.B(x, y)) {
-                this.touchCode = "B";
-                return;
-            }
+                this.dirCodes.forEach(dirCode => {
+                    this.nes.keyboard.keyDown({
+                        keyCode: dirCode
+                    });
+                });
+            } else {
+                if (this.sound(x, y)) {
+                    this.nes.opts.emulateSound = !this.nes.opts.emulateSound;
+                    return;
+                }
+                if (this.pause(x, y)) {
+                    if (this.nes.isRunning) {
+                        this.nes.stop();
+                        this.ui.updateStatus("Paused");
+                    } else {
+                        this.nes.start();
+                    }
+                    return;
+                }
+                if (this.restart(x, y)) {
+                    this.nes.reloadRom();
+                    this.nes.start();
+                    return;
+                }
 
-        }))
+                if (this.select(x, y)) {
+                    this.funCodes.push(13);
+                } else if (this.A(x, y)) {
+                    this.funCodes.push(74);
+                } else if (this.B(x, y)) {
+                    this.funCodes.push(75);
+                } else if (this.AB(x, y)) {
+                    this.funCodes.push(74, 75);
+                }
 
-        canvas.addEventListener('touchmove', ((e) => {
-            e.preventDefault()
-
-            const x = e.touches[0].clientX
-            const y = e.touches[0].clientY
-
-            if (this.touched) {
-                //this.setAirPosAcrossFingerPosZ(x, y)
+                this.funCodes.forEach(funCode => {
+                    this.nes.keyboard.keyDown({
+                        keyCode: funCode
+                    });
+                });
             }
         }))
 
         canvas.addEventListener('touchend', ((e) => {
-            e.preventDefault()
+            e.preventDefault();
 
-            this.touched = false;
+            const x = e.changedTouches[0].clientX;
+
+            if (x < windowWidth/2) {
+                this.dirCodes.forEach(dirCode => {
+                    this.nes.keyboard.keyUp({
+                        keyCode: dirCode
+                    });
+                });
+                this.dirCodes = [];
+            } else {
+                this.funCodes.forEach(funCode => {
+                    this.nes.keyboard.keyUp({
+                        keyCode: funCode
+                    });
+                });
+                this.funCodes = [];
+            }
         }))
     }
 
@@ -496,6 +367,13 @@ export default class Main {
             && y >= this.bY
             && x <= this.bX + AB_BTN_SIZE
             && y <= this.bY + AB_BTN_SIZE);
+    }
+
+    AB(x, y) {
+        return !!(x >= this.abX
+            && y >= this.abY
+            && x <= this.abX + AB_BTN_SIZE
+            && y <= this.abY + AB_BTN_SIZE);
     }
 }
 
