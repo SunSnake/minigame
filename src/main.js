@@ -111,7 +111,7 @@ export default class Main {
         let select = new Image();
         select.src = SELECT_BTN_IMG_SRC;
         select.onload = () => {
-            this.selectX = FUNCTION_BTN_SIZE*13 + f_marginLeft;
+            this.selectX = FUNCTION_BTN_SIZE*11 + f_marginLeft;
             this.selectY = FUNCTION_BTN_SIZE + f_marginRight/2;
             ctx.drawImage(select, this.selectX, this.selectY, FUNCTION_BTN_SIZE, FUNCTION_BTN_SIZE)
         }
@@ -120,7 +120,7 @@ export default class Main {
         let sound = new Image();
         sound.src = SOUND_BTN_IMG_SRC;
         sound.onload = () => {
-            this.soundX = FUNCTION_BTN_SIZE*15 + f_marginLeft;
+            this.soundX = FUNCTION_BTN_SIZE*12 + f_marginLeft;
             this.soundY = FUNCTION_BTN_SIZE + f_marginRight/2;
             ctx.drawImage(sound, this.soundX, this.soundY, FUNCTION_BTN_SIZE, FUNCTION_BTN_SIZE)
         }
@@ -129,7 +129,7 @@ export default class Main {
         let pause = new Image();
         pause.src = PAUSE_BTN_IMG_SRC;
         pause.onload = () => {
-            this.pauseX = FUNCTION_BTN_SIZE*13 + f_marginLeft;
+            this.pauseX = FUNCTION_BTN_SIZE*11 + f_marginLeft;
             this.pauseY = FUNCTION_BTN_SIZE + f_marginRight;
             ctx.drawImage(pause, this.pauseX, this.pauseY, FUNCTION_BTN_SIZE, FUNCTION_BTN_SIZE)
         }
@@ -138,7 +138,7 @@ export default class Main {
         let restart = new Image();
         restart.src = RESTART_BTN_IMG_SRC;
         restart.onload = () => {
-            this.restartX = FUNCTION_BTN_SIZE*15 + f_marginLeft;
+            this.restartX = FUNCTION_BTN_SIZE*12 + f_marginLeft;
             this.restartY = FUNCTION_BTN_SIZE + f_marginRight;
             ctx.drawImage(restart, this.restartX, this.restartY, FUNCTION_BTN_SIZE, FUNCTION_BTN_SIZE)
         }
@@ -153,7 +153,7 @@ export default class Main {
         let a = new Image();
         a.src = A_BTN_IMG_SRC;
         a.onload = () => {
-            this.aX = AB_BTN_SIZE*13 + ab_marginLeft;
+            this.aX = AB_BTN_SIZE*11 + ab_marginLeft;
             this.aY = AB_BTN_SIZE + ab_marginRight*2;
             ctx.drawImage(a, this.aX, this.aY, AB_BTN_SIZE, AB_BTN_SIZE)
         }
@@ -162,7 +162,7 @@ export default class Main {
         let b = new Image();
         b.src = B_BTN_IMG_SRC;
         b.onload = () => {
-            this.bX = FUNCTION_BTN_SIZE*15 + ab_marginLeft;
+            this.bX = FUNCTION_BTN_SIZE*12 + ab_marginLeft;
             this.bY = FUNCTION_BTN_SIZE + ab_marginRight*2;
             ctx.drawImage(b, this.bX, this.bY, AB_BTN_SIZE, AB_BTN_SIZE)
         }
@@ -171,7 +171,7 @@ export default class Main {
         let ab = new Image();
         ab.src = AB_BTN_IMG_SRC;
         ab.onload = () => {
-            this.abX = FUNCTION_BTN_SIZE*13 + ab_marginLeft;
+            this.abX = FUNCTION_BTN_SIZE*11 + ab_marginLeft;
             this.abY = FUNCTION_BTN_SIZE + ab_marginRight*3;
             ctx.drawImage(ab, this.abX, this.abY, AB_BTN_SIZE, AB_BTN_SIZE)
         }
@@ -179,75 +179,77 @@ export default class Main {
 
     // 响应手指的触摸事件
     initEvent() {
-        canvas.addEventListener('touchstart', ((e) => {
-            e.preventDefault()
+        let _this = this;
+        wx.onTouchStart(function (e) {
+            e.touches.forEach(touch => {
+                const x = touch.clientX;
+                const y = touch.clientY;
 
-            const x = e.touches[0].clientX;
-            const y = e.touches[0].clientY;
-
-            //左半侧只有方向键
-            if (x < windowWidth/2) {
-                if (this.upLeft(x, y)) {
-                    this.dirCodes.push(65, 87);
-                } else if (this.up(x, y)) {
-                    this.dirCodes.push(87);
-                } else if (this.upRight(x, y)) {
-                    this.dirCodes.push(87, 68);
-                } else if (this.right(x, y)) {
-                    this.dirCodes.push(68);
-                } else if (this.downRight(x, y)) {
-                    this.dirCodes.push(68, 83);
-                } else if (this.down(x, y)) {
-                    this.dirCodes.push(83);
-                } else if (this.downLeft(x, y)) {
-                    this.dirCodes.push(83, 65);
-                } else if (this.left(x, y)) {
-                    this.dirCodes.push(65);
-                }
-
-                this.dirCodes.forEach(dirCode => {
-                    this.nes.keyboard.keyDown({
-                        keyCode: dirCode
-                    });
-                });
-            } else {
-                if (this.sound(x, y)) {
-                    this.nes.opts.emulateSound = !this.nes.opts.emulateSound;
-                    return;
-                }
-                if (this.pause(x, y)) {
-                    if (this.nes.isRunning) {
-                        this.nes.stop();
-                        this.ui.updateStatus("Paused");
-                    } else {
-                        this.nes.start();
+                //左半侧只有方向键
+                if (x < windowWidth/2) {
+                    if (_this.upLeft(x, y)) {
+                        _this.dirCodes.push(65, 87);
+                    } else if (_this.up(x, y)) {
+                        _this.dirCodes.push(87);
+                    } else if (_this.upRight(x, y)) {
+                        _this.dirCodes.push(87, 68);
+                    } else if (_this.right(x, y)) {
+                        _this.dirCodes.push(68);
+                    } else if (_this.downRight(x, y)) {
+                        _this.dirCodes.push(68, 83);
+                    } else if (_this.down(x, y)) {
+                        _this.dirCodes.push(83);
+                    } else if (_this.downLeft(x, y)) {
+                        _this.dirCodes.push(83, 65);
+                    } else if (_this.left(x, y)) {
+                        _this.dirCodes.push(65);
                     }
-                    return;
-                }
-                if (this.restart(x, y)) {
-                    this.nes.reloadRom();
-                    this.nes.start();
-                    return;
-                }
 
-                if (this.select(x, y)) {
-                    this.funCodes.push(13);
-                } else if (this.A(x, y)) {
-                    this.funCodes.push(74);
-                } else if (this.B(x, y)) {
-                    this.funCodes.push(75);
-                } else if (this.AB(x, y)) {
-                    this.funCodes.push(74, 75);
-                }
-
-                this.funCodes.forEach(funCode => {
-                    this.nes.keyboard.keyDown({
-                        keyCode: funCode
+                    _this.dirCodes.forEach(dirCode => {
+                        _this.nes.keyboard.keyDown({
+                            keyCode: dirCode
+                        });
                     });
-                });
-            }
-        }))
+                } else {
+                    if (_this.sound(x, y)) {
+                        _this.nes.opts.emulateSound = !_this.nes.opts.emulateSound;
+                        return;
+                    }
+                    if (_this.pause(x, y)) {
+                        if (_this.nes.isRunning) {
+                            _this.nes.stop();
+                            _this.ui.updateStatus("Paused");
+                        } else {
+                            _this.nes.start();
+                        }
+                        return;
+                    }
+                    if (_this.restart(x, y)) {
+                        _this.nes.reloadRom();
+                        _this.nes.start();
+                        return;
+                    }
 
+                    if (_this.select(x, y)) {
+                        _this.funCodes.push(13);
+                    } else if (_this.A(x, y)) {
+                        _this.funCodes.push(74);
+                    } else if (_this.B(x, y)) {
+                        _this.funCodes.push(75);
+                    } else if (_this.AB(x, y)) {
+                        _this.funCodes.push(74, 75);
+                    }
+
+                    _this.funCodes.forEach(funCode => {
+                        _this.nes.keyboard.keyDown({
+                            keyCode: funCode
+                        });
+                    });
+                }
+            })
+        });
+
+        canvas.addEventListener('touchstart', ((e) => {}));
         canvas.addEventListener('touchend', ((e) => {
             e.preventDefault();
 
