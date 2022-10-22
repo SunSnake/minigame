@@ -38,16 +38,7 @@ export default class JSNESUI {
         self.newImgData = self.canvasContext.getImageData(0, 0,this.cellWidth, this.cellWidth);
         self.resetCanvas();
 
-        window.AudioContext = window.webkitAudioContext || window.AudioContext;
-        try {
-            self.audio = new AudioContext();
-        } catch (e) {
-            // lets fallback to Flash (for Internet Explorer 8-11)
-            console.error(e);
-            self.dynamicaudio = new DynamicAudio({
-                swf: this.nes.opts.swfPath + 'dynamicaudio.swf'
-            });
-        }
+        self.audio = wx.createWebAudioContext();
     }
 
     setNES(nes) {
@@ -57,7 +48,7 @@ export default class JSNESUI {
     loadROM() {
         let self = this;
         wx.request({
-            url: 'http://127.0.0.1:8001/rom2/RockinCats.nes',
+            url: 'https://6663-fc-game-4gk1r5x4564ec14e-1314518224.tcb.qcloud.la/RockinCats.nes?sign=ba80fcacc5b5d09d698454c7d8649df3&t=1666357441',
             responseType: 'arraybuffer',
             success: function (res) {
                 let data = res.data;
@@ -118,11 +109,6 @@ export default class JSNESUI {
     }
 
     writeAudio(samples) {
-        //return this.dynamicaudio.writeInt(samples);
-        // Use fallback if available and return early
-        if (this.dynamicaudio) {
-            return this.dynamicaudio.writeInt(samples);
-        }
         // Create output buffer (planar buffer format)
         var buffer = this.audio.createBuffer(2, samples.length, this.audio.sampleRate);
         var channelLeft = buffer.getChannelData(0);
