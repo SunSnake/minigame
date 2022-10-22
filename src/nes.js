@@ -26,7 +26,6 @@ export default class JSNES {
     constructor(JSNESUI) {
         this.opts = {
             ui: JSNESUI,
-            swfPath: 'lib/',
 
             preferredFrameRate: 60,
             fpsInterval: 500, // Time between updating FPS in ms
@@ -211,12 +210,6 @@ export default class JSNES {
     resetFps() {
         this.lastFpsTime = null;
         this.fpsFrameCount = 0;
-    }
-
-    setFramerate(rate){
-        this.opts.preferredFrameRate = rate;
-        this.frameTime = 1000 / rate;
-        this.papu.setSampleRate(this.opts.sampleRate, false);
     }
 
     toJSON() {

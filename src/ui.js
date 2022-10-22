@@ -17,25 +17,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 export default class JSNESUI {
-    constructor() {
+    constructor(padding) {
         let self = this;
-
-        self.screen = canvas;
         self.loadROM();
 
         let windowHeight = wx.getSystemInfoSync().windowHeight;
-        self.cellHeigth = windowHeight;
+        let windowWidth = wx.getSystemInfoSync().windowWidth;
+
+        self.cellHeigth = windowHeight - padding*2;
         self.cellWidth = parseInt(windowHeight*256/240);
 
-        self.screenDistnce = parseInt((wx.getSystemInfoSync().windowWidth - self.cellWidth)/2);
-
-        /*if (typeof roms != 'undefined') {
-            self.setRoms(roms);
-        }*/
+        self.screenDistanceX = parseInt((windowWidth - self.cellWidth)/2);
+        self.screenDistanceY = padding;
 
         self.canvasContext = canvas.getContext('2d');
         self.canvasImageData = self.canvasContext.getImageData(0, 0, 256, 240);
-        self.newImgData = self.canvasContext.getImageData(0, 0,this.cellWidth, this.cellWidth);
+        self.newImgData = self.canvasContext.getImageData(0, 0,this.cellWidth, this.cellHeigth);
         self.resetCanvas();
 
         self.audio = wx.createWebAudioContext();
@@ -91,23 +88,6 @@ export default class JSNESUI {
         /*this.status.text(s);*/
     }
 
-    setRoms(roms) {
-        this.romSelect.children().remove();
-        $("<option>选择游戏...</option>").appendTo(this.romSelect);
-        for (var groupName in roms) {
-            if (roms.hasOwnProperty(groupName)) {
-                var optgroup = $('<optgroup></optgroup>').
-                attr("label", groupName);
-                for (var i = 0; i < roms[groupName].length; i++) {
-                    $('<option>' + roms[groupName][i][0] + '</option>')
-                        .attr("value", roms[groupName][i][1])
-                        .appendTo(optgroup);
-                }
-                this.romSelect.append(optgroup);
-            }
-        }
-    }
-
     writeAudio(samples) {
         // Create output buffer (planar buffer format)
         var buffer = this.audio.createBuffer(2, samples.length, this.audio.sampleRate);
@@ -155,7 +135,7 @@ export default class JSNESUI {
             }
         }
 
-        this.canvasContext.putImageData(this.newImgData, this.screenDistnce, 0);
+        this.canvasContext.putImageData(this.newImgData, this.screenDistanceX, this.screenDistanceY);
     }
 
     changeNewImgData(index, imageData, newImgData) {

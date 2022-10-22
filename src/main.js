@@ -5,11 +5,17 @@ import JSNES from "./nes";
 import JSNESUI from "./ui";
 
 const windowWidth = wx.getSystemInfoSync().windowWidth;
+const windowHeight = wx.getSystemInfoSync().windowHeight;
+
+const padding = parseInt(windowWidth*15/896);
+const fontSize = parseInt(windowWidth*24/896);
+const cellWidth = parseInt(windowHeight*256/240);
+const screenDistanceX = parseInt((windowWidth - cellWidth)/2);
 
 const ctx = canvas.getContext('2d');
-const DIRECTION_BTN_SIZE = 50;
-const FUNCTION_BTN_SIZE = 50;
-const AB_BTN_SIZE = 50;
+const DIRECTION_BTN_SIZE = parseInt(windowWidth*50/896);
+const FUNCTION_BTN_SIZE = DIRECTION_BTN_SIZE;
+const AB_BTN_SIZE = DIRECTION_BTN_SIZE;
 
 export default class Main {
 
@@ -17,144 +23,169 @@ export default class Main {
         this.dirCodes = [];
         this.funCodes = [];
 
-        this.drawDirectionButtons();
-        this.drawFuncButtons();
-        this.drawABButtons();
-
         //初始化中间屏幕
-        this.ui = new JSNESUI()
+        this.ui = new JSNESUI(padding)
         this.nes = new JSNES(this.ui);
         this.ui.setNES(this.nes);
 
         // 初始化事件监听
         this.initEvent();
+        //填充背景色
+        ctx.fillStyle = "#70f3ff";
+        ctx.fillRect(0,0, windowWidth, windowHeight);
+
+        this.drawDirectionButtons();
+        this.drawFuncButtons();
+        this.drawABButtons();
+        this.drawChooseButton();
+    }
+
+    //选择游戏按钮
+    drawChooseButton() {
+        this.cgX = screenDistanceX - padding - DIRECTION_BTN_SIZE*3;
+        this.cgWidth = DIRECTION_BTN_SIZE*3;
+        this.cgY = windowHeight - padding - DIRECTION_BTN_SIZE*6;
+        this.cgHeight = DIRECTION_BTN_SIZE;
+
+        const chooseGameCanvas = wx.createCanvas()
+        const context = chooseGameCanvas.getContext('2d')
+        chooseGameCanvas.width  = this.cgWidth;
+        chooseGameCanvas.height = this.cgHeight;
+        context.fillStyle = "#eeeeee";
+        context.fillRect(0,0, chooseGameCanvas.width, chooseGameCanvas.height);
+        context.font = fontSize + "px Microsoft YaHei"
+        context.textBaseline = "middle";
+        context.textAlign = "center";
+        context.fillStyle = "#333333";
+        context.fillText("选择游戏", chooseGameCanvas.width/2, chooseGameCanvas.height/2);
+        ctx.drawImage(chooseGameCanvas, this.cgX, this.cgY);
     }
 
     //方向按钮组
     drawDirectionButtons() {
-        const db_marginLeft = 50;
-        const db_marginRight = 100;
+        const directionMarginX = screenDistanceX - padding - DIRECTION_BTN_SIZE*3;
+        const directionMarginY = windowHeight - padding - DIRECTION_BTN_SIZE*3;
 
         const DIRECTION_BTN_IMG_SRC = 'images/bullet.png'
 
         let uL = new Image();
         uL.src = DIRECTION_BTN_IMG_SRC;
         uL.onload = () => {
-            this.uLX = db_marginLeft;
-            this.uLY = db_marginRight;
+            this.uLX = directionMarginX;
+            this.uLY = directionMarginY;
             ctx.drawImage(uL, this.uLX, this.uLY, DIRECTION_BTN_SIZE, DIRECTION_BTN_SIZE)
         }
 
         let up = new Image();
         up.src = DIRECTION_BTN_IMG_SRC;
         up.onload = () => {
-            this.upX = DIRECTION_BTN_SIZE + db_marginLeft;
-            this.upY = db_marginRight;
+            this.upX = directionMarginX + DIRECTION_BTN_SIZE;
+            this.upY = directionMarginY;
             ctx.drawImage(up, this.upX, this.upY, DIRECTION_BTN_SIZE, DIRECTION_BTN_SIZE)
         }
 
         let uR = new Image();
         uR.src = DIRECTION_BTN_IMG_SRC;
         uR.onload = () => {
-            this.uRX = db_marginLeft*3;
-            this.uRY = db_marginRight;
+            this.uRX = directionMarginX + DIRECTION_BTN_SIZE*2;
+            this.uRY = directionMarginY;
             ctx.drawImage(uR, this.uRX, this.uRY, DIRECTION_BTN_SIZE, DIRECTION_BTN_SIZE)
         }
 
         let right = new Image();
         right.src = DIRECTION_BTN_IMG_SRC;
         right.onload = () => {
-            this.rightX = DIRECTION_BTN_SIZE*2 + db_marginLeft;
-            this.rightY = DIRECTION_BTN_SIZE + db_marginRight;
+            this.rightX = directionMarginX + DIRECTION_BTN_SIZE*2;
+            this.rightY = directionMarginY + DIRECTION_BTN_SIZE;
             ctx.drawImage(right, this.rightX, this.rightY, DIRECTION_BTN_SIZE, DIRECTION_BTN_SIZE)
         }
 
         let dR = new Image();
         dR.src = DIRECTION_BTN_IMG_SRC;
         dR.onload = () => {
-            this.dRX = db_marginLeft*3;
-            this.dRY = db_marginRight*2;
+            this.dRX = directionMarginX + DIRECTION_BTN_SIZE*2;
+            this.dRY = directionMarginY + DIRECTION_BTN_SIZE*2;
             ctx.drawImage(uR, this.dRX, this.dRY, DIRECTION_BTN_SIZE, DIRECTION_BTN_SIZE)
         }
 
         let down = new Image();
         down.src = DIRECTION_BTN_IMG_SRC;
         down.onload = () => {
-            this.downX = DIRECTION_BTN_SIZE + db_marginLeft;
-            this.downY = DIRECTION_BTN_SIZE*2 + db_marginRight;
+            this.downX = directionMarginX + DIRECTION_BTN_SIZE;
+            this.downY = directionMarginY + DIRECTION_BTN_SIZE*2;
             ctx.drawImage(down, this.downX, this.downY, DIRECTION_BTN_SIZE, DIRECTION_BTN_SIZE)
         }
 
         let dL = new Image();
         dL.src = DIRECTION_BTN_IMG_SRC;
         dL.onload = () => {
-            this.dLX = db_marginLeft;
-            this.dLY = db_marginRight*2;
+            this.dLX = directionMarginX;
+            this.dLY = directionMarginY + DIRECTION_BTN_SIZE*2;
             ctx.drawImage(dL, this.dLX, this.dLY, DIRECTION_BTN_SIZE, DIRECTION_BTN_SIZE)
         }
 
         let left = new Image();
         left.src = DIRECTION_BTN_IMG_SRC;
         left.onload = () => {
-            this.leftX = db_marginLeft;
-            this.leftY = DIRECTION_BTN_SIZE + db_marginRight;
+            this.leftX = directionMarginX;
+            this.leftY = directionMarginY + DIRECTION_BTN_SIZE;
             ctx.drawImage(left, this.leftX, this.leftY, DIRECTION_BTN_SIZE, DIRECTION_BTN_SIZE)
         }
     }
 
     //功能按钮组
     drawFuncButtons() {
-        const f_marginLeft = 50;
-        const f_marginRight = 100;
+        const functionMarginX = screenDistanceX + cellWidth + padding;
+        const functionMarginY = windowHeight - padding - DIRECTION_BTN_SIZE*6;
 
         const SELECT_BTN_IMG_SRC = 'images/explosion8.png';
         let select = new Image();
         select.src = SELECT_BTN_IMG_SRC;
         select.onload = () => {
-            this.selectX = FUNCTION_BTN_SIZE*11 + f_marginLeft;
-            this.selectY = FUNCTION_BTN_SIZE + f_marginRight/2;
+            this.selectX = functionMarginX;
+            this.selectY = functionMarginY;
             ctx.drawImage(select, this.selectX, this.selectY, FUNCTION_BTN_SIZE, FUNCTION_BTN_SIZE)
-        }
-
-        const SOUND_BTN_IMG_SRC = 'images/explosion8.png';
-        let sound = new Image();
-        sound.src = SOUND_BTN_IMG_SRC;
-        sound.onload = () => {
-            this.soundX = FUNCTION_BTN_SIZE*12 + f_marginLeft;
-            this.soundY = FUNCTION_BTN_SIZE + f_marginRight/2;
-            ctx.drawImage(sound, this.soundX, this.soundY, FUNCTION_BTN_SIZE, FUNCTION_BTN_SIZE)
         }
 
         const PAUSE_BTN_IMG_SRC = 'images/hero.png';
         let pause = new Image();
         pause.src = PAUSE_BTN_IMG_SRC;
         pause.onload = () => {
-            this.pauseX = FUNCTION_BTN_SIZE*11 + f_marginLeft;
-            this.pauseY = FUNCTION_BTN_SIZE + f_marginRight;
+            this.pauseX = functionMarginX + FUNCTION_BTN_SIZE + padding*2;
+            this.pauseY = functionMarginY;
             ctx.drawImage(pause, this.pauseX, this.pauseY, FUNCTION_BTN_SIZE, FUNCTION_BTN_SIZE)
+        }
+
+        const SOUND_BTN_IMG_SRC = 'images/explosion8.png';
+        let sound = new Image();
+        sound.src = SOUND_BTN_IMG_SRC;
+        sound.onload = () => {
+            this.soundX = functionMarginX;
+            this.soundY = functionMarginY + FUNCTION_BTN_SIZE + padding*2;
+            ctx.drawImage(sound, this.soundX, this.soundY, FUNCTION_BTN_SIZE, FUNCTION_BTN_SIZE)
         }
 
         const RESTART_BTN_IMG_SRC = 'images/enemy.png';
         let restart = new Image();
         restart.src = RESTART_BTN_IMG_SRC;
         restart.onload = () => {
-            this.restartX = FUNCTION_BTN_SIZE*12 + f_marginLeft;
-            this.restartY = FUNCTION_BTN_SIZE + f_marginRight;
+            this.restartX = functionMarginX + FUNCTION_BTN_SIZE + padding*2;
+            this.restartY = functionMarginY + FUNCTION_BTN_SIZE + padding*2;
             ctx.drawImage(restart, this.restartX, this.restartY, FUNCTION_BTN_SIZE, FUNCTION_BTN_SIZE)
         }
     }
 
     //AB按钮组
     drawABButtons() {
-        const ab_marginLeft = 50;
-        const ab_marginRight = 100;
+        const ABMarginX = screenDistanceX + cellWidth + padding;
+        const ABMarginY = windowHeight - padding - AB_BTN_SIZE;
 
         const A_BTN_IMG_SRC = 'images/explosion8.png';
         let a = new Image();
         a.src = A_BTN_IMG_SRC;
         a.onload = () => {
-            this.aX = AB_BTN_SIZE*11 + ab_marginLeft;
-            this.aY = AB_BTN_SIZE + ab_marginRight*2;
+            this.aX = ABMarginX;
+            this.aY = ABMarginY;
             ctx.drawImage(a, this.aX, this.aY, AB_BTN_SIZE, AB_BTN_SIZE)
         }
 
@@ -162,8 +193,8 @@ export default class Main {
         let b = new Image();
         b.src = B_BTN_IMG_SRC;
         b.onload = () => {
-            this.bX = FUNCTION_BTN_SIZE*12 + ab_marginLeft;
-            this.bY = FUNCTION_BTN_SIZE + ab_marginRight*2;
+            this.bX = ABMarginX + AB_BTN_SIZE + padding*2;
+            this.bY = ABMarginY;
             ctx.drawImage(b, this.bX, this.bY, AB_BTN_SIZE, AB_BTN_SIZE)
         }
 
@@ -171,9 +202,9 @@ export default class Main {
         let ab = new Image();
         ab.src = AB_BTN_IMG_SRC;
         ab.onload = () => {
-            this.abX = FUNCTION_BTN_SIZE*11 + ab_marginLeft;
-            this.abY = FUNCTION_BTN_SIZE + ab_marginRight*3;
-            ctx.drawImage(ab, this.abX, this.abY, AB_BTN_SIZE, AB_BTN_SIZE)
+            this.abX = ABMarginX;
+            this.abY = ABMarginY - AB_BTN_SIZE;
+            ctx.drawImage(ab, this.abX, this.abY, AB_BTN_SIZE*3, AB_BTN_SIZE)
         }
     }
 
@@ -187,6 +218,10 @@ export default class Main {
 
                 //左半侧只有方向键
                 if (x < windowWidth/2) {
+                    if (_this.chooseGame(x, y)) {
+                        return;
+                    }
+
                     if (_this.upLeft(x, y)) {
                         _this.dirCodes.push(65, 87);
                     } else if (_this.up(x, y)) {
@@ -271,6 +306,13 @@ export default class Main {
                 this.funCodes = [];
             }
         }))
+    }
+
+    chooseGame(x, y) {
+        return !!(x >= this.cgX
+            && y >= this.cgY
+            && x <= this.cgX + this.cgWidth
+            && y <= this.cgY + this.cgHeight);
     }
 
     upLeft(x, y) {
