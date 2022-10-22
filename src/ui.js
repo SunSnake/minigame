@@ -45,7 +45,7 @@ export default class JSNESUI {
     loadROM() {
         let self = this;
         wx.request({
-            url: 'https://6663-fc-game-4gk1r5x4564ec14e-1314518224.tcb.qcloud.la/RockinCats.nes?sign=ba80fcacc5b5d09d698454c7d8649df3&t=1666357441',
+            url: 'https://6663-fc-game-4gk1r5x4564ec14e-1314518224.tcb.qcloud.la/roms/17.nes',
             responseType: 'arraybuffer',
             success: function (res) {
                 let data = res.data;
